@@ -1,4 +1,4 @@
--- ########## NATIVE ID PARENT / TEXT SUBPARENT TESTS ##########
+-- ########## NATIVE ID PARENT / UUID7 SUBPARENT TESTS ##########
 -- Additional tests: no pg_jobmon
     -- Test using a pre-created template table and passing to create_parent. Should allow indexes to be made for initial children.
     -- additional constraint column
@@ -15,34 +15,10 @@ CREATE SCHEMA partman_test;
 CREATE TABLE partman_test.fk_test_reference (col2 text unique not null);
 INSERT INTO partman_test.fk_test_reference VALUES ('stuff');
 
-CREATE OR REPLACE FUNCTION partman_test.encode_timestamp(
-    p_timestamp TIMESTAMPTZ,
-    OUT encoded TEXT
-)
-    RETURNS TEXT
-    LANGUAGE plpgsql STABLE
-    AS $$
-BEGIN
-    SELECT concat('INV', to_char(p_timestamp, 'YYYYMMDD')) INTO encoded;
-END
-$$;
-
-CREATE OR REPLACE FUNCTION partman_test.decode_timestamp(
-    p_str TEXT,
-    OUT ts TIMESTAMPTZ
-)
-    RETURNS TIMESTAMPTZ
-    LANGUAGE plpgsql STABLE
-    AS $$
-BEGIN
-    SELECT substr(p_str, 4) INTO ts;
-END
-$$;
-
 CREATE TABLE partman_test.id_taptest_table (
     col1 int NOT NULL
     , col2 text DEFAULT 'stuff'
-    , col3 text NOT NULL DEFAULT concat('INV', to_char(now(), 'YYYYMMDD')))
+    , col3 uuid NOT NULL DEFAULT partman.uuid7_time_encoder(CURRENT_TIMESTAMP))
     PARTITION BY RANGE (col1);
 CREATE TABLE partman_test.undo_taptest (LIKE partman_test.id_taptest_table INCLUDING ALL);
 -- Template table
@@ -92,8 +68,8 @@ SELECT create_sub_parent(
     p_declarative_check => 'yes',
     p_control => 'col3',
     p_interval => '1 day',
-    p_time_encoder := 'partman_test.encode_timestamp',
-    p_time_decoder := 'partman_test.decode_timestamp',
+    p_time_encoder := 'partman.uuid7_time_encoder',
+    p_time_decoder := 'partman.uuid7_time_decoder',
     p_start_partition => (CURRENT_TIMESTAMP - '6 days'::interval)::text);
 --Reinsert data due to child table destruction
 INSERT INTO partman_test.id_taptest_table (col1) VALUES (generate_series(1,9));
@@ -323,7 +299,7 @@ SELECT is_empty('SELECT * FROM ONLY partman_test.id_taptest_table_p40_default', 
 SELECT is_empty('SELECT * FROM partman_test.id_taptest_table_p40', 'Check count from parent table _p40 (should be empty)');
 
 -- insertion round 2
-INSERT INTO partman_test.id_taptest_table (col1, col3) VALUES (generate_series(10,20), concat('INV', to_char(CURRENT_TIMESTAMP+'1 day'::interval, 'YYYYMMDD')));
+INSERT INTO partman_test.id_taptest_table (col1, col3) VALUES (generate_series(10,20), partman.uuid7_time_encoder(CURRENT_TIMESTAMP+'1 day'::interval));
 
 SELECT run_maintenance();
 SELECT is_empty('SELECT * FROM ONLY partman_test.id_taptest_table_default', 'Check that top parent default is empty');

@@ -1,4 +1,4 @@
--- ########## TIME DAILY TESTS ##########
+-- ########## UUID7 DAILY TESTS ##########
 -- Other tests:
     -- Privilege inheritance
     -- check that maintenance catches up if tables are missing

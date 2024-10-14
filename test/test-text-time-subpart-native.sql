@@ -1,4 +1,4 @@
--- ########## TIME PARENT / ID SUBPARENT NATIVE TESTS ##########
+-- ########## TEXT PARENT / ID SUBPARENT NATIVE TESTS ##########
 -- Additional tests:
     -- Set analyze to true for maintenance
     -- Premake template table and ensure pk is made on initial child tables

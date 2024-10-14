@@ -1,4 +1,4 @@
--- ########## TIME DAILY TESTS ##########
+-- ########## UUID7 DAILY TESTS ##########
 -- Other tests: test that gap in child tables backfill works
     -- Test using default template table. Initial child tables will have no indexes. New tables after template has indexes added should.
 
