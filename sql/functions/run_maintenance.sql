@@ -223,13 +223,13 @@ LOOP
         LOOP
 
             IF v_control_type = 'time' OR (v_control_type = 'id' AND v_row.epoch <> 'none') THEN
-                EXECUTE format('SELECT %s::text FROM %I.%I'
+                EXECUTE format('SELECT %s::text FROM %I.%I LIMIT 1'
                                     , v_partition_expression
                                     , v_row_max_time.partition_schemaname
                                     , v_row_max_time.partition_tablename
                                 ) INTO v_child_timestamp;
             ELSIF v_control_type IN ('text', 'uuid') THEN
-                EXECUTE format('SELECT %s(%s::text) FROM %I.%I'
+                EXECUTE format('SELECT %s(%s::text) FROM %I.%I LIMIT 1'
                                     , v_time_decoder
                                     , v_partition_expression
                                     , v_row_max_time.partition_schemaname
